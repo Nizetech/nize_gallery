@@ -17,6 +17,7 @@ dependencies:
   path_provider: ^2.0.15
   open_file: ^3.3.2
   flutter_riverpod: ^1.0.4
+  get: ^4.6.5
 
   # permission_handler: ^10.3.0
   # path_provider_ex: ^1.0.1

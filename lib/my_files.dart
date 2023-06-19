@@ -1,9 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
-
+// import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nize_gallery/controller.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -66,26 +67,26 @@ class _MyFilesState extends ConsumerState<MyFiles> {
   String dirName = '';
   String folderName = '';
   List<String> routePath = [];
-
+  final controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    folderName = ref.watch(dirNameProvider);
+    // folderName = ref.watch(dirNameProvider);
     return WillPopScope(
       onWillPop: () async {
         if (nextPage) {
           routePath.removeLast();
+          ref.read(dirProvider.notifier).changeDirectory(
+                routePath.isEmpty
+                    ? '/storage/emulated/0'
+                    : routePath[routePath.length - 1],
+              );
           setState(() {
-            ref.read(dirProvider.notifier).changeDirectory(
-                  routePath.isEmpty
-                      ? '/storage/emulated/0'
-                      : routePath[routePath.length - 1],
-                );
-            ref.read(dirNameProvider.notifier).changeFolder(
-                  routePath.isEmpty
-                      ? 'root Directory'
-                      : routePath[routePath.length - 1].split('/').last,
-                );
-            // folderName = routePath[routePath.length - 1].split('/').last;
+            // ref.read(dirNameProvider.notifier).changeFolder(
+            //       routePath.isEmpty
+            //           ? 'root Directory'
+            //           : routePath[routePath.length - 1].split('/').last,
+            //     );
+            folderName = routePath[routePath.length - 1].split('/').last;
             nextPage = false;
           });
           getFiles();
@@ -96,9 +97,52 @@ class _MyFilesState extends ConsumerState<MyFiles> {
       },
       child: Scaffold(
         appBar: AppBar(
+          actions: [
+            IconButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          child: Container(
+                            height: 150,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextField(
+                                    controller: controller,
+                                    decoration: InputDecoration(
+                                        hintText: 'Enter folder name'),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Directory(ref.read(dirProvider) +
+                                              '/' +
+                                              controller.text)
+                                          .createSync();
+                                      controller.clear();
+                                      getFiles();
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Create'))
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+                },
+                icon: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ))
+          ],
           leading: routePath.isNotEmpty
               ? BackButton(
                   onPressed: () {
+                    // Get.to()
                     routePath.removeLast();
                     ref.read(dirProvider.notifier).changeDirectory(
                           routePath.isEmpty
@@ -144,17 +188,19 @@ class _MyFilesState extends ConsumerState<MyFiles> {
                 onTap: () {
                   //Open directory
                   if (file[index] is Directory) {
-                    setState(() {
-                      ref
-                          .read(dirProvider.notifier)
-                          .changeDirectory(file[index].path);
-                      routePath.add(file[index].path);
-                      log(routePath.toString());
-                      folderName = file[index].path.split('/').last;
+                    ref
+                        .read(dirProvider.notifier)
+                        .changeDirectory(file[index].path);
+                    routePath.add(file[index].path);
+                    log(routePath.toString());
 
+                    setState(() {
+                      folderName = file[index].path.split('/').last;
                       nextPage = true;
                     });
                     getFiles();
+                  } else {
+                    OpenFile.open(file[index].path);
                   }
                 },
                 leading: file[index].path.contains('.')
@@ -168,6 +214,93 @@ class _MyFilesState extends ConsumerState<MyFiles> {
                 //   file[index].path.split('/').first,
                 //   style: TextStyle(color: Colors.green, fontSize: 12),
                 // ),
+                trailing: PopupMenuButton(
+                  icon: Icon(Icons.more_vert),
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        onTap: () {
+                          // Navigator.pop(context);
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text('Delete File'),
+                                  content: Text(
+                                      'Are you sure you want to delete this file?'),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () {
+                                          file[index].deleteSync();
+                                          getFiles();
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                          'Yes',
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        )),
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                          'No',
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ))
+                                  ],
+                                );
+                              });
+                        },
+                        child: Text('Delete'),
+                        value: 'delete',
+                      ),
+                      PopupMenuItem(
+                        onTap: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return Dialog(
+                                  child: Container(
+                                    height: 150,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextField(
+                                            controller: controller,
+                                            decoration: InputDecoration(
+                                                hintText: 'Enter new name'),
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                            onPressed: () {
+                                              file[index]
+                                                  .renameSync(controller.text);
+                                              controller.clear();
+                                              getFiles();
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Rename'))
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              });
+                        },
+                        child: Text('Rename'),
+                        value: 'rename',
+                      ),
+                    ];
+                  },
+                ),
               ),
             );
           },
