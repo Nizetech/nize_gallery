@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nize_gallery/controller.dart';
+import 'package:nize_gallery/controllers/controller.dart';
 import 'package:nize_gallery/extensions/extension.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,7 +18,6 @@ class MyFiles extends ConsumerStatefulWidget {
 }
 
 class _MyFilesState extends ConsumerState<MyFiles> {
-  @override
   @override
   void didChangeDependencies() {
     getFiles();
@@ -43,7 +42,7 @@ class _MyFilesState extends ConsumerState<MyFiles> {
     // image = await genThumbnailFile(path);
     image = await VideoCompress.getFileThumbnail(path,
         quality: 30, // default(100)
-        position: -1 // default(-1)
+        position: -3 // default(-1)
         );
     mediaInfo = await VideoCompress.getMediaInfo(path);
     // (path);
@@ -108,6 +107,7 @@ class _MyFilesState extends ConsumerState<MyFiles> {
   String folderName = '';
   List<String> routePath = [];
   final controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     // folderName = ref.watch(dirNameProvider);
@@ -199,7 +199,7 @@ class _MyFilesState extends ConsumerState<MyFiles> {
                     getFiles();
                   },
                 )
-              : null,
+              : BackButton(),
           title: Text(
             nextPage
                 ?
@@ -264,12 +264,12 @@ class _MyFilesState extends ConsumerState<MyFiles> {
                   dirName,
                   style: TextStyle(color: Colors.black, fontSize: 16),
                 ),
-            
+
                 // subtitle: Text(
                 //   file[index].path.split('/').first,
                 //   style: TextStyle(color: Colors.green, fontSize: 12),
                 // ),
-            
+
                 trailing: PopupMenuButton(
                   icon: Icon(Icons.more_vert),
                   onSelected: (value) {
