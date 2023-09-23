@@ -3,14 +3,15 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 // import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/src/widgets/page.dart' as pw;
 import 'package:pdf/widgets.dart';
 import 'package:printing/printing.dart';
-import 'package:flutter/material.dart' as mat;
-import 'package:flutter/material.dart' as mat;
+// import 'package:flutter/material.dart' as mat;
+// import 'package:flutter/material.dart' as mat;
 
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
@@ -127,26 +128,23 @@ class ReceiptController extends GetxController {
     // final id = DateTime.fromMicrosecondsSinceEpoch(
     //         DateTime.now().microsecondsSinceEpoch)
     //     .toString();
-    String path = '$appPath/sales_receipt$id.png';
-    // ${isImage ?
-    // "png"
-    // : "pdf"}
-    // ';
+    String path = '$appPath/sales_receipt$id.pdf';
+    // ${isImage ? "png" : "pdf"}';
     log(' share File path: $path');
-    XFile file = new XFile(path);
-    // final result = await
-    OpenFile.open(path);
-    Share.shareXFiles(
-      [file],
+    File file = new File(path);
+    //  // final result = await
+    // OpenFile.open(path);
+    final result = await Share.shareFiles(
+      // [file],
+      [path],
       text: 'Transaction receipt',
-      sharePositionOrigin: Rect.fromLTWH(0, 0, 10, 10),
+      sharePositionOrigin: Rect.fromCircle(
+        radius: Get.width * 0.25,
+        center: const Offset(0, 0),
+      ),
+      // sharePositionOrigin: Rect.fromLTWH(0, 0, 10, 10),
     );
-    // await Share.share('Transaction receipt');
-    // if (result.status == ShareResultStatus.success) {
-    //   log('file shared Successfully');
-    // } else {
-    //   log('file not shared');
-    // }
+  
 
     log('file shared');
   }

@@ -21,6 +21,7 @@ dependencies:
   flutter_riverpod: ^1.0.4
   video_thumbnail: ^0.5.3
   video_compress: ^3.1.2
+  google_fonts: ^6.1.0
   encrypt: ^5.0.1
   pdf: ^3.10.4
   printing: ^5.11.0
