@@ -1,18 +1,21 @@
 // import 'dart:io';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 // import 'package:get/get.dart';
+import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/src/widgets/page.dart' as pw;
-import 'package:pdf/widgets.dart' hide Page;
+import 'package:pdf/widgets.dart';
 import 'package:printing/printing.dart';
-// import 'package:share/share.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart' as mat;
+import 'package:flutter/material.dart' as mat;
 
-class ReceiptController
-// extends GetxController
-{
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
+
+class ReceiptController extends GetxController {
   bool fetchingImage = false;
   bool fetchingPdf = false;
   bool sharingImage = false;
@@ -33,13 +36,21 @@ class ReceiptController
   }
 
   Future<File> getPaymentReceiptPDF({required Page page}) async {
-    final Directory appDocDir = await getApplicationDocumentsDirectory();
-    final String appDocPath = appDocDir.path;
-    final id = DateTime.fromMicrosecondsSinceEpoch(
-            DateTime.now().microsecondsSinceEpoch)
-        .toString();
+    final Directory? appDocDir = await getExternalStorageDirectory();
+    // final Directory appDocDir = await getApplicationDocumentsDirectory();
+    // Directory appDocDir = await Directory('/storage/emulated/0/myReceipt');
+    // if (appDocDir.exists() == false) {
+    //   appDocDir.createSync();
+    // }
+    final String appDocPath = appDocDir!.path;
+    // final id = DateTime.fromMicrosecondsSinceEpoch(
+    //         DateTime.now().microsecondsSinceEpoch)
+    //     .toString();
+    final id = '3bb';
+
     final String filePath = '$appDocPath/sales_receipt$id.pdf';
     final File file = File(filePath);
+    log('file: $file');
     bool exist = await file.exists();
     if (!exist) {
       file.create();
@@ -48,28 +59,95 @@ class ReceiptController
     }
     List<int> bytes = await _generatePDFOrImage(page: page);
     await file.writeAsBytes(bytes);
+    // PdfPreview(
+    //   build: (format) => _generatePDFOrImage(page: page),
+    //   actions: [
+    //     PdfPreviewAction(
+    //       icon: mat.Icon(mat.Icons.share),
+    //       onPressed: (context, format, bytes) async {
+    //         await Share.shareFiles([filePath], text: 'Transaction receipt');
+    //       },
+    //     )
+    //   ],
+    // );
     return file;
   }
 
   Future<File> getPaymentReceiptImage({required Page page}) async {
-    Directory appDocDir = await getApplicationDocumentsDirectory();
-    String appPath = appDocDir.path;
-    final id = DateTime.fromMicrosecondsSinceEpoch(
-            DateTime.now().microsecondsSinceEpoch)
-        .toString();
-    String path = '$appPath/sales_receipt$id.png';
-    File file = new File(path);
-    bool exists = await file.exists();
-    if (exists) return file;
-    List<int> bytes = await _generatePDFOrImage(page: page, isImage: true);
-    await file.writeAsBytes(bytes);
-    return file;
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+      // Directory appDocDir = await Directory('/storage/emulated/0/myReceipt');
+      // if (appDocDir.exists() == false) {
+      //   appDocDir.createSync();
+      // }
+      // Directory? appDocDir = await getExternalStorageDirectory();
+      Directory? appDocDir = await getExternalStorageDirectory();
+
+      String appPath = appDocDir!.path;
+      log('appPath: $appPath');
+      final id = '3bb';
+
+      // final id = DateTime.fromMicrosecondsSinceEpoch(
+      //         DateTime.now().microsecondsSinceEpoch)
+      // .toString();
+      String path = '$appPath/sales_receipt$id.png';
+      File file = new File(path);
+      bool exists = await file.exists();
+      if (!exists) {
+        file.create();
+      } else {
+        file;
+      }
+      log('file: $file Created');
+      List<int> bytes = await _generatePDFOrImage(page: page, isImage: true);
+      await file.writeAsBytes(bytes);
+      return file;
+    } catch (e) {
+      log(e.toString());
+      print(e);
+      return File('');
+    } finally {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
   }
 
-//   Future<void> shareFile({dynamic transId, required bool isImage}) async {
-//     Directory appDocDir = await getApplicationDocumentsDirectory();
-//     String appPath = appDocDir.path;
-//     String path = '$appPath/payment_receipt_$transId.${isImage? "png" : "pdf"}';
-//     Share.shareFiles([path], text: 'Transaction receipt');
-//   }
+  Future<void> shareFile({required bool isImage}) async {
+    // Directory appDocDir = await getApplicationDocumentsDirectory();
+    Directory? appDocDir = await getExternalStorageDirectory();
+    String appPath = appDocDir!.path;
+    final id = '3bb';
+    // final id = DateTime.fromMicrosecondsSinceEpoch(
+    //         DateTime.now().microsecondsSinceEpoch)
+    //     .toString();
+    String path = '$appPath/sales_receipt$id.png';
+    // ${isImage ?
+    // "png"
+    // : "pdf"}
+    // ';
+    log(' share File path: $path');
+    XFile file = new XFile(path);
+    // final result = await
+    OpenFile.open(path);
+    Share.shareXFiles(
+      [file],
+      text: 'Transaction receipt',
+      sharePositionOrigin: Rect.fromLTWH(0, 0, 10, 10),
+    );
+    // await Share.share('Transaction receipt');
+    // if (result.status == ShareResultStatus.success) {
+    //   log('file shared Successfully');
+    // } else {
+    //   log('file not shared');
+    // }
+
+    log('file shared');
+  }
 }

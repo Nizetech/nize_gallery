@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:nize_gallery/encryption/encrytion.dart';
 import 'package:nize_gallery/file_manager/file_manager.dart';
 import 'package:nize_gallery/internal_storage/my_files.dart';
 import 'package:nize_gallery/gallery/my_gallery.dart';
+import 'package:nize_gallery/pdf/pdf_screen.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flutter/material.dart';
@@ -19,7 +21,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         fontFamily: 'GalanoGrotesque',
@@ -29,7 +31,8 @@ class MyApp extends StatelessWidget {
       // home: const MyHomePage(title: 'Flutter Demo Home Page'),
       // home: HomePage(),
       // home: MyFiles(),
-      home: MyEncryption(),
+      home: PdfDownloadReceipt(),
+      // home: MyEncryption(),
       // home: MyGallery(),
     );
   }
