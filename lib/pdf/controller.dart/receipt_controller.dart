@@ -128,8 +128,8 @@ class ReceiptController extends GetxController {
     // final id = DateTime.fromMicrosecondsSinceEpoch(
     //         DateTime.now().microsecondsSinceEpoch)
     //     .toString();
-    String path = '$appPath/sales_receipt$id.pdf';
-    // ${isImage ? "png" : "pdf"}';
+    String path = '$appPath/sales_receipt$id.${isImage ? "png" : "pdf"}';
+  
     log(' share File path: $path');
     File file = new File(path);
     //  // final result = await
